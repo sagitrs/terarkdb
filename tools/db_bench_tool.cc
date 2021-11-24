@@ -5871,11 +5871,7 @@ int db_bench_tool(int argc, char** argv) {
     }
 
     auto dbname = "dbname=" + FLAGS_zbd_path;
-  #ifdef BZBD_ZENFS
     Status s = NewZenfsEnv(&FLAGS_env, FLAGS_zbd_path, dbname, metrics_reporter_factory);
-  #else
-    Status s = NewZenfsEnv(&FLAGS_env, FLAGS_zbd_path);
-  #endif
     if (!s.ok()) {
         fprintf(stderr, "Error: Init zenfs env failed.\nStatus : %s\n", s.ToString().c_str());
         exit(1);
