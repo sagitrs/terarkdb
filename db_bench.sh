@@ -49,7 +49,7 @@ rm -rf /tmp/zenfs_$DEVICE*
 	--optimize_filters_for_hits=true \
 	--optimize_range_deletion=true \
 	--num=6000000000 \
-	--db=test_db_3(wd) \
+	--db=test_db_3 \
 	--benchmark_write_rate_limit=209715200 \
 	--prepare_log_writer_num=0 \
 	--num_column_families=5 \
