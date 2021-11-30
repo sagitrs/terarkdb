@@ -86,7 +86,7 @@
 #include "utilities/trace/bytedance_metrics_reporter.h"
 
 #ifdef WITH_ZENFS
-#include "third-party/zenfs/fs/zbd_stat.h"
+//#include "third-party/zenfs/fs/zbd_stat.h"
 #endif
 
 #if !defined(_MSC_VER) && !defined(__APPLE__)
