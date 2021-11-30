@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <mutex>
-#ifdef WITH_BYTEDANCE_METRICS
+#ifdef TERARKDB_ENABLE_METRICS
 #include "metrics.h"
 #endif
 
@@ -12,9 +12,8 @@
 namespace TERARKDB_NAMESPACE {
 
 const int kNanosInMilli = 1000000;
-static const char default_namespace[] = "terarkdb.engine.stats";
 
-#ifdef WITH_BYTEDANCE_METRICS
+#ifdef TERARKDB_ENABLE_METRICS
 static std::mutex metrics_mtx;
 static std::atomic<bool> metrics_init{false};
 
@@ -49,6 +48,12 @@ static int GetThreadID() {
   }
   return id;
 }
+#else
+namespace {
+static ByteDanceHistReporterHandle dummy_hist_("", "", nullptr, nullptr);
+static ByteDanceCountReporterHandle dummy_count_("", "", nullptr, nullptr);
+}  // namespace
+#endif
 
 void ByteDanceHistReporterHandle::AddRecord(size_t val) {
   auto* tls_stat_ptr = GetThreadLocalStats();
@@ -67,7 +72,7 @@ void ByteDanceHistReporterHandle::AddRecord(size_t val) {
     stats_.Merge(tls_stat);
 
     diff_ms = (curr_time_ns - stats_.last_report_time_ns_) / kNanosInMilli;
-    if (diff_ms >= 30000 /* 30 seconds */) {
+    if (diff_ms > 5000) {
       auto result = stats_.GetResult({0.50, 0.99, 0.999});
       stats_.Reset();
       stats_.last_report_time_ns_ = curr_time_ns;
@@ -80,9 +85,17 @@ void ByteDanceHistReporterHandle::AddRecord(size_t val) {
       cpputil::metrics2::Metrics::emit_store(name_ + "_max", result[4], tags_);
 
       diff_ms = (curr_time_ns - last_log_time_ns_) / kNanosInMilli;
-      InfoLogLevel log_level = InfoLogLevel::DEBUG_LEVEL;
-      if (diff_ms > 10 * 60 * 1000 /* 10 minutes */) {
-        log_level = InfoLogLevel::INFO_LEVEL;
+      if (diff_ms > 10 * 60 * 1000) {
+        ROCKS_LOG_INFO(log_, "name:%s P50, tags:%s, val:%zu", name_.c_str(),
+                       tags_.c_str(), result[0]);
+        ROCKS_LOG_INFO(log_, "name:%s P99, tags:%s, val:%zu", name_.c_str(),
+                       tags_.c_str(), result[1]);
+        ROCKS_LOG_INFO(log_, "name:%s P999, tags:%s, val:%zu", name_.c_str(),
+                       tags_.c_str(), result[2]);
+        ROCKS_LOG_INFO(log_, "name:%s Avg, tags:%s, val:%zu", name_.c_str(),
+                       tags_.c_str(), result[3]);
+        ROCKS_LOG_INFO(log_, "name:%s Max, tags:%s, val:%zu", name_.c_str(),
+                       tags_.c_str(), result[4]);
         last_log_time_ns_ = curr_time_ns;
       }
       TERARKDB_NAMESPACE::Log(log_level, logger_,
@@ -127,7 +140,7 @@ void ByteDanceCountReporterHandle::AddCount(size_t n) {
     if (!reporter_lock_.exchange(true, std::memory_order_acquire)) {
       auto curr_time_ns = env_->NowNanos();
       auto diff_ms = (curr_time_ns - last_report_time_ns_) / kNanosInMilli;
-      if (diff_ms >= 30000 /* 30 seconds */) {
+      if (diff_ms > 1000) {
         size_t curr_count = count_.load(std::memory_order_relaxed);
         size_t qps = (curr_count - last_report_count_) /
                      (static_cast<double>(diff_ms) / 1000);
@@ -137,9 +150,9 @@ void ByteDanceCountReporterHandle::AddCount(size_t n) {
         last_report_count_ = curr_count;
 
         diff_ms = (curr_time_ns - last_log_time_ns_) / kNanosInMilli;
-        InfoLogLevel log_level = InfoLogLevel::DEBUG_LEVEL;
-        if (diff_ms > 10 * 60 * 1000 /* 10 minutes */) {
-          log_level = InfoLogLevel::INFO_LEVEL;
+        if (diff_ms > 10 * 60 * 1000) {
+          ROCKS_LOG_INFO(log_, "name:%s, tags:%s, val:%zu", name_.c_str(),
+                         tags_.c_str(), qps);
           last_log_time_ns_ = curr_time_ns;
         }
         TERARKDB_NAMESPACE::Log(log_level, logger_, "name:%s, tags:%s, val:%zu",
@@ -176,29 +189,39 @@ void ByteDanceMetricsReporterFactory::InitNamespace(const std::string& ns) {
 #endif
 }
 
-HistReporterHandle* ByteDanceMetricsReporterFactory::BuildHistReporter(
-    const std::string& name, const std::string& tags, Logger* logger,
+#ifdef TERARKDB_ENABLE_METRICS
+ByteDanceHistReporterHandle* ByteDanceMetricsReporterFactory::BuildHistReporter(
+    const std::string& name, const std::string& tags, Logger* log,
     Env* const env) {
-#ifdef WITH_BYTEDANCE_METRICS
   std::lock_guard<std::mutex> guard(metrics_mtx);
-  hist_reporters_.emplace_back(name, tags, logger, env);
+  hist_reporters_.emplace_back(name, tags, log, env);
   return &hist_reporters_.back();
 #else
-  (void)name, (void)tags, (void)logger, (void)env;
-  return DummyHistReporterHandle();
+ByteDanceHistReporterHandle* ByteDanceMetricsReporterFactory::BuildHistReporter(
+    const std::string& /*name*/, const std::string& /*tags*/, Logger* /*log*/,
+    Env* const /*env*/) {
+  return &dummy_hist_;
+}
 #endif
 }
 
-CountReporterHandle* ByteDanceMetricsReporterFactory::BuildCountReporter(
-    const std::string& name, const std::string& tags, Logger* logger,
-    Env* const env) {
-#ifdef WITH_BYTEDANCE_METRICS
+#ifdef TERARKDB_ENABLE_METRICS
+ByteDanceCountReporterHandle*
+ByteDanceMetricsReporterFactory::BuildCountReporter(const std::string& name,
+                                                    const std::string& tags,
+                                                    Logger* log,
+                                                    Env* const env) {
   std::lock_guard<std::mutex> guard(metrics_mtx);
-  count_reporters_.emplace_back(name, tags, logger, env);
+  count_reporters_.emplace_back(name, tags, log, env);
   return &count_reporters_.back();
 #else
-  (void)name, (void)tags, (void)logger, (void)env;
-  return DummyCountReporterHandle();
+ByteDanceCountReporterHandle*
+ByteDanceMetricsReporterFactory::BuildCountReporter(const std::string& /*name*/,
+                                                    const std::string& /*tags*/,
+                                                    Logger* /*log*/,
+                                                    Env* const /*env*/) {
+  return &dummy_count_;
+}
 #endif
 }
 }  // namespace TERARKDB_NAMESPACE
