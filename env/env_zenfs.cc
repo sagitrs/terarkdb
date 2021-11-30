@@ -4,8 +4,10 @@
 
 #ifdef WITH_ZENFS
 #include "third-party/zenfs/fs/fs_zenfs.h"
-#include "third-party/zenfs/fs/zbd_stat.h"
 #include "third-party/zenfs/fs/zbd_zenfs.h"
+#ifndef WITH_ZENFS_WD
+#include "third-party/zenfs/fs/zbd_stat.h"
+#endif
 
 namespace TERARKDB_NAMESPACE {
 
@@ -185,7 +187,11 @@ class ZenfsEnv : public EnvWrapper {
   Status InitZenfs(
       const std::string& zdb_path, std::string bytedance_tags_,
       std::shared_ptr<MetricsReporterFactory> metrics_reporter_factory_) {
+#ifndef WITH_ZENFS_WD
     return NewZenFS(&fs_, zdb_path, bytedance_tags_, metrics_reporter_factory_);
+#else
+    return NewZenFS(&fs_, zdb_path);
+#endif
   }
 
   // Return the target to which this Env forwards all calls
@@ -466,7 +472,7 @@ class ZenfsEnv : public EnvWrapper {
   void SanitizeEnvOptions(EnvOptions* env_opts) const override {
     target_->SanitizeEnvOptions(env_opts);
   }
-
+#ifndef WITH_ZENFS_WD
   Status GetZbdDiskSpaceInfo(uint64_t& total_size, uint64_t& avail_size,
                              uint64_t& used_size) {
     auto zbd = dynamic_cast<ZenFS*>(fs_)->GetZonedBlockDevice();
@@ -480,6 +486,7 @@ class ZenfsEnv : public EnvWrapper {
     auto zen_fs = dynamic_cast<ZenFS*>(fs_);
     return zen_fs->GetStat();
   }
+#endif
 
  private:
   Env* target_;
@@ -496,7 +503,7 @@ Status NewZenfsEnv(
   *zenfs_env = s.ok() ? env : nullptr;
   return s;
 }
-
+#ifndef WITH_ZENFS_WD
 Status GetZbdDiskSpaceInfo(Env* env, uint64_t& total_size, uint64_t& avail_size,
                            uint64_t& used_size) {
   return dynamic_cast<ZenfsEnv*>(env)->GetZbdDiskSpaceInfo(
@@ -508,6 +515,7 @@ std::vector<ZoneStat> GetStat(Env* env) {
   if (!zen_env) return {};
   return zen_env->GetStat();
 }
+#endif
 
 }  // namespace TERARKDB_NAMESPACE
 

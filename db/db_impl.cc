@@ -85,7 +85,7 @@
 #include "util/sync_point.h"
 #include "utilities/trace/bytedance_metrics_reporter.h"
 
-#ifdef WITH_ZENFS
+#if defined(WITH_ZENFS) && !defined(WITH_ZENFS_WD)
 #include "third-party/zenfs/fs/zbd_stat.h"
 #endif
 
@@ -1072,7 +1072,7 @@ void DBImpl::ScheduleTtlGC() {
   log_buffer_debug.FlushBufferToLog();
 }
 
-#ifdef WITH_ZENFS
+#if defined(WITH_ZENFS) && !defined(WITH_ZENFS_WD)
 // Implemented inside `zenfs/fs/fs_zenfs.cc`
 std::vector<ZoneStat> GetStat(Env* env);
 
