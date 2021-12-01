@@ -1072,7 +1072,7 @@ void DBImpl::ScheduleTtlGC() {
   log_buffer_debug.FlushBufferToLog();
 }
 
-#if defined(WITH_ZENFS)
+#ifdef WITH_ZENFSπ
 // Implemented inside `zenfs/fs/fs_zenfs.cc`
 std::vector<ZoneStat> GetStat(Env* env);
 
