@@ -32,7 +32,7 @@ rm -rf /tmp/zenfs_$DEVICE*
 	--threads=16 \
 	--num_levels=7 \
 	--key_size=36 \
-	--value_size=16000 \
+	--value_size=1600 \
 	--level_compaction_dynamic_level_bytes=true \
 	--mmap_read=false \
 	--compression_type=zstd \
@@ -48,7 +48,7 @@ rm -rf /tmp/zenfs_$DEVICE*
 	--max_dependence_blob_overlap=128 \
 	--optimize_filters_for_hits=true \
 	--optimize_range_deletion=true \
-	--num=6000000000 \
+	--num=600000 \
 	--db=test_db_3 \
 	--benchmark_write_rate_limit=209715200 \
 	--prepare_log_writer_num=0 \
