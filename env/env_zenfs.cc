@@ -4,7 +4,7 @@
 
 #ifdef WITH_ZENFS
 #include "third-party/zenfs/fs/fs_zenfs.h"
-#include "third-party/zenfs/fs/zbd_stat.h"
+#include "util/zbd_stat.h"
 #include "third-party/zenfs/fs/zbd_zenfs.h"
 #include "utilities/trace/bytedance_metrics_histogram.h"
 
@@ -480,9 +480,43 @@ class ZenfsEnv : public EnvWrapper {
     return Status::OK();
   }
 
-  std::vector<ZoneStat> GetStat() {
+  std::vector<BDZoneStat> GetStat() {
     auto zen_fs = dynamic_cast<ZenFS*>(fs_);
-    return zen_fs->GetStat();
+    
+    std::vector<ZoneSnapshot> zones;
+    std::vector<ZoneFileSnapshot> zone_files;
+    zen_fs->GetSnapshot(zones, zone_files);
+
+    // Store size of each file_id in each zone
+    std::map<uint64_t, std::map<uint64_t, uint64_t>> sizes;
+    // Store file_id to filename map
+    std::map<uint64_t, std::string> filenames;
+    for (auto& file : zone_files) {
+      uint64_t file_id = file.FileID();
+      filenames[file_id] = file.Filename();
+      for (const ZoneExtentSnapshot& extent : file.Extent()) {
+        sizes[extent.ZoneID()][file_id] += extent.Length();
+      }
+    }
+
+    std::vector<BDZoneStat> stat;
+
+    for (auto& zone : zones) {
+      BDZoneStat bd_zone(zone);
+      std::map<uint64_t, uint64_t>& zone_files = sizes[bd_zone.FakeID()];
+      
+      for (auto& file : zone_files) {
+        uint64_t file_id = file.first;
+        uint64_t file_length = file.second;
+        BDZoneFileStat file_stat;
+        file_stat.file_id = file_id;
+        file_stat.size_in_zone = file_length;
+        file_stat.filename = filenames[file_id];
+        bd_zone.files.emplace_back(std::move(file_stat));
+      }
+    }
+
+    return stat;
   }
 
  private:
@@ -507,7 +541,7 @@ Status GetZbdDiskSpaceInfo(Env* env, uint64_t& total_size, uint64_t& avail_size,
       total_size, avail_size, used_size);
 }
 
-std::vector<ZoneStat> GetStat(Env* env) {
+std::vector<BDZoneStat> GetStat(Env* env) {
   auto zen_env = dynamic_cast<ZenfsEnv*>(env);
   if (!zen_env) return {};
   return zen_env->GetStat();
@@ -531,7 +565,7 @@ Status GetZbdDiskSpaceInfo(Env* env, uint64_t& total_size, uint64_t& avail_size,
   return Status::NotSupported("GetZbdDiskSpaceInfo is not implemented.");
 }
 
-std::vector<ZoneStat> GetStat(Env* env) { return {}; }
+std::vector<BDZoneStat> GetStat(Env* env) { return {}; }
 
 }  // namespace TERARKDB_NAMESPACE
 
