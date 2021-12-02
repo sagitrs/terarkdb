@@ -88,6 +88,8 @@ class CurriedMetricsReporterFactory {
 
  public:
   CurriedMetricsReporterFactory(std::shared_ptr<MetricsReporterFactory> factory,
+                                Env* const env);
+  CurriedMetricsReporterFactory(std::shared_ptr<MetricsReporterFactory> factory,
                                 Logger* logger, Env* const env);
 
   Logger* GetLogger() const { return logger_; }

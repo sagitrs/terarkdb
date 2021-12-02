@@ -73,6 +73,12 @@ const std::unordered_map<BDZenFSMetricsHistograms, BDZenFSMetricsReporterType> B
   {ZENFS_RESETABLE_ZONES,             ZENFS_REPORTER_TYPE_GENERAL}
 };
 
+struct NoLogger : public Logger {
+public:
+  using Logger::Logv;
+  virtual void Logv(const char* /*format*/, va_list /*ap*/) override {}
+};
+
 #if defined(WITH_ZENFS)
 struct BDZenFSMetrics : public ZenFSMetrics {
 public:
@@ -166,12 +172,8 @@ public:
  public:
   BDZenFSMetrics(std::shared_ptr<MetricsReporterFactory> factory, std::string bytedance_tags, std::shared_ptr<Logger> logger = nullptr):
     ZenFSMetrics(),
-    bytedance_tags_(bytedance_tags) {
-      if (logger) {
-        logger_ = logger;
-      } else {
-        Env::Default()->NewLogger("to_be_deleted.log", &logger_);
-      }
+    bytedance_tags_(bytedance_tags),
+    logger_(logger == nullptr ? std::make_shared<NoLogger>() : logger) {
       factory_ = std::make_shared<CurriedMetricsReporterFactory>(factory, logger_.get(), Env::Default());
       for (auto &h : BDZenFSHistogramsTypeMap) 
         AddReporter(static_cast<uint32_t>(h.first), static_cast<uint32_t>(h.second));

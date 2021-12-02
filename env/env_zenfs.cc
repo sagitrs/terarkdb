@@ -186,8 +186,7 @@ class ZenfsEnv : public EnvWrapper {
   Status InitZenfs(
       const std::string& zdb_path, std::string bytedance_tags_,
       std::shared_ptr<MetricsReporterFactory> metrics_reporter_factory_) {
-
-    auto metrics = std::make_shared<BDZenFSMetrics>(metrics_reporter_factory_, bytedance_tags_);
+    auto metrics = std::make_shared<BDZenFSMetrics>(metrics_reporter_factory_, bytedance_tags_, nullptr);
     return NewZenFS(&fs_, zdb_path, metrics);
   }
 
@@ -472,12 +471,7 @@ class ZenfsEnv : public EnvWrapper {
 
   Status GetZbdDiskSpaceInfo(uint64_t& total_size, uint64_t& avail_size,
                              uint64_t& used_size) {
-//    auto zbd = dynamic_cast<ZenFS*>(fs_)->GetZonedBlockDevice();
-//    used_size = zbd->GetUsedSpace();
-//    avail_size = zbd->GetFreeSpace();
-//    total_size = used_size + avail_size;
-    assert(false);
-    return Status::OK();
+    return Status::NotSupported("GetZbdDiskSpaceInfo is not implemented.");
   }
 
   std::vector<BDZoneStat> GetStat() {
