@@ -479,7 +479,8 @@ class ZenfsEnv : public EnvWrapper {
     
     std::vector<ZoneSnapshot> zones;
     std::vector<ZoneFileSnapshot> zone_files;
-    zen_fs->GetSnapshot(zones, zone_files);
+    zen_fs->GetZoneSnapshot(zones);
+    zen_fs->GetZoneFileSnapshot(zone_files);
 
     // Store size of each file_id in each zone
     std::map<uint64_t, std::map<uint64_t, uint64_t>> sizes;
