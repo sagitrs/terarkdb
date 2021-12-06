@@ -12,6 +12,8 @@
 #include <vector>
 #include "third-party/zenfs/fs/snapshot.h"
 
+#define WITH_GET_STAT
+
 namespace ROCKSDB_NAMESPACE {
 
 class BDZoneFileStat {
