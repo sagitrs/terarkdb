@@ -28,7 +28,7 @@ public:
   uint64_t start_position;
   std::vector<BDZoneFileStat> files;
   BDZoneStat(const ZoneSnapshot& zs):
-    total_capacity(zs.TotalCapacity()),
+    total_capacity(zs.MaxCapacity()),
     write_position(zs.WritePosition()),
     start_position(zs.StartPosition()) {}
   ~BDZoneStat() {}

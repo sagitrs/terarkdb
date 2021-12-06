@@ -1073,7 +1073,7 @@ void DBImpl::ScheduleTtlGC() {
 }
 
 #ifdef WITH_ZENFS
-// Implemented inside `zenfs/fs/fs_zenfs.cc`
+// Implemented inside `util/fs_zenfs.cc`
 std::vector<BDZoneStat> GetStat(Env* env);
 
 void DBImpl::ScheduleZNSGC() {
