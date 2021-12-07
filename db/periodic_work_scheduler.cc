@@ -45,7 +45,7 @@ void PeriodicWorkScheduler::Register(DBImpl* dbi,
              initial_delay.fetch_add(1) % kDefaultScheduleGCTTLPeriodSec *
                  kMicrosInSecond,
              kDefaultScheduleGCTTLPeriodSec * kMicrosInSecond);
-#if defined(WITH_ZENFS) && defined(WITH_GET_STAT)
+#if defined(WITH_ZENFS) && defined(WITH_ZNS_GC_ENABLED)
   timer->Add([dbi]() { dbi->ScheduleZNSGC(); },
              GetTaskName(dbi, "schedule_gc_zns"),
              initial_delay.fetch_add(1) % kDefaultScheduleZNSTTLPeriodSec *

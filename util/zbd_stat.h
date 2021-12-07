@@ -12,7 +12,7 @@
 #include <vector>
 #include "third-party/zenfs/fs/snapshot.h"
 
-#define WITH_GET_STAT
+#define WITH_ZNS_GC_ENABLED
 
 namespace ROCKSDB_NAMESPACE {
 
