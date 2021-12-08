@@ -1084,6 +1084,7 @@ void DBImpl::ScheduleMetricsReporter() {
   options.zone_.enabled_ = 0;
   options.zone_extent_.enabled_ = 0;
   options.zone_file_.enabled_ = 0;  
+  GetZenFSSnapshot(env_, snapshot, options);
 }
 
 void DBImpl::ScheduleZNSGC() {
