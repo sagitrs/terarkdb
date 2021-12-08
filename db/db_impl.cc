@@ -1076,6 +1076,16 @@ void DBImpl::ScheduleTtlGC() {
 // Implemented inside `util/fs_zenfs.cc`
 std::vector<BDZoneStat> GetStat(Env* env);
 
+void DBImpl::ScheduleMetricsReporter() {
+  //TEST_SYNC_POINT("DBImpl:ScheduleMetricsReporter");
+  ZenFSSnapshotOptions options;
+  ZenFSSnapshot snapshot;
+  options.trigger_report_ = 1;
+  options.zone_.enabled_ = 0;
+  options.zone_extent_.enabled_ = 0;
+  options.zone_file_.enabled_ = 0;  
+}
+
 void DBImpl::ScheduleZNSGC() {
   TEST_SYNC_POINT("DBImpl:ScheduleZNSGC");
   uint64_t nowSeconds = env_->NowMicros() / 1000U / 1000U;

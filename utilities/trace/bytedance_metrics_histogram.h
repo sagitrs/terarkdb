@@ -168,6 +168,15 @@ public:
   virtual void ReportGeneral(uint32_t label, size_t value) override {
     Report(label, value, ZENFS_REPORTER_TYPE_GENERAL);
   }
+  virtual void ReportSnapshot(const ZenFSSnapshot& snapshot, const ZenFSSnapshotOptions& options) {
+    if (options.zbd_.get_free_space_)
+      ReportGeneral(ZENFS_FREE_SPACE, snapshot.zbd_.GetFreeSpace() >> 30);
+    if (options.zbd_.get_used_space_)
+      ReportGeneral(ZENFS_USED_SPACE, snapshot.zbd_.GetUsedSpace() >> 30);
+    if (options.zbd_.get_reclaimable_space_)
+      ReportGeneral(ZENFS_RECLAIMABLE_SPACE, snapshot.zbd_.GetReclaimableSpace() >> 30);
+    // and more
+  }
  
  public:
   BDZenFSMetrics(std::shared_ptr<MetricsReporterFactory> factory, std::string bytedance_tags, std::shared_ptr<Logger> logger = nullptr):

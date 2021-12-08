@@ -11,9 +11,6 @@
 #include <string>
 #include <vector>
 #include "third-party/zenfs/fs/snapshot.h"
-
-#define WITH_ZNS_GC_ENABLED
-
 namespace ROCKSDB_NAMESPACE {
 
 class BDZoneFileStat {

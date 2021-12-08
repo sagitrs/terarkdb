@@ -808,6 +808,8 @@ class DBImpl : public DB {
   void ScheduleTtlGC();
 
 #ifdef WITH_ZENFS
+  // schedule Metrics Reporter background.
+  void ScheduleMetricsReporter();
   // schedule GC by polling ZNS zone status
   void ScheduleZNSGC();
 #endif

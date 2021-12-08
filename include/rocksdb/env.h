@@ -36,6 +36,7 @@
 #undef LoadLibrary
 #endif
 
+
 #if defined(__GNUC__) || defined(__clang__)
 #define ROCKSDB_PRINTF_FORMAT_ATTR(format_param, dots_param) \
   __attribute__((__format__(__printf__, format_param, dots_param)))
@@ -1680,7 +1681,15 @@ class MetricsReporterFactory;
 Status NewZenfsEnv(
     Env** zenfs_env, const std::string& zdb_path, std::string bytedance_tags_,
     std::shared_ptr<MetricsReporterFactory> metrics_reporter_factory_);
-    
-Status GetZbdDiskSpaceInfo(Env* env, uint64_t& total_size, uint64_t& avail_size,
-                           uint64_t& used_size);
+
+
+#if defined(WITH_ZENFS)
+class ZenFSSnapshot;
+class ZenFSSnapshotOptions;
+class BDZoneStat;
+
+std::vector<BDZoneStat> GetStat(Env* env);
+void GetZenFSSnapshot(Env* env, ZenFSSnapshot& snapshot, const ZenFSSnapshotOptions& options);
+#endif
+
 }  // namespace TERARKDB_NAMESPACE
