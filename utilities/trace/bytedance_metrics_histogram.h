@@ -16,9 +16,11 @@ typedef ZenFSMetricsHistograms BDZenFSMetricsHistograms;
 typedef ZenFSMetricsReporterType BDZenFSMetricsReporterType;
 
 const std::unordered_map<BDZenFSMetricsHistograms, std::string> BDZenFSHistogramsNameMap = {
+  {ZENFS_WRITE_LATENCY,           "zenfs_write_latency"},
   {ZENFS_FG_WRITE_LATENCY,        "zenfs_fg_write_latency"},
   {ZENFS_BG_WRITE_LATENCY,        "zenfs_bg_write_latency"},
   {ZENFS_READ_LATENCY,            "zenfs_read_latency"},
+  {ZENFS_SYNC_LATENCY,            "zenfs_sync_latency"},
   {ZENFS_FG_SYNC_LATENCY,         "fg_zenfs_sync_latency"},
   {ZENFS_BG_SYNC_LATENCY,         "bg_zenfs_sync_latency"},
   {ZENFS_IO_ALLOC_WAL_LATENCY,    "zenfs_io_alloc_wal_latency"},
@@ -45,9 +47,11 @@ const std::unordered_map<BDZenFSMetricsHistograms, std::string> BDZenFSHistogram
 };
 
 const std::unordered_map<BDZenFSMetricsHistograms, BDZenFSMetricsReporterType> BDZenFSHistogramsTypeMap = {
-  {ZENFS_FG_WRITE_LATENCY,            ZENFS_REPORTER_TYPE_LATENCY},
+  {ZENFS_WRITE_LATENCY,               ZENFS_REPORTER_TYPE_LATENCY},
+  {,            ZENFS_REPORTER_TYPE_LATENCY},
   {ZENFS_BG_WRITE_LATENCY,            ZENFS_REPORTER_TYPE_LATENCY},
   {ZENFS_READ_LATENCY,                ZENFS_REPORTER_TYPE_LATENCY},
+  {ZENFS_SYNC_LATENCY,                ZENFS_REPORTER_TYPE_LATENCY},
   {ZENFS_FG_SYNC_LATENCY,             ZENFS_REPORTER_TYPE_LATENCY},
   {ZENFS_BG_SYNC_LATENCY,             ZENFS_REPORTER_TYPE_LATENCY},
   {ZENFS_IO_ALLOC_WAL_LATENCY,        ZENFS_REPORTER_TYPE_LATENCY},
