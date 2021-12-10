@@ -186,7 +186,8 @@ class ZenfsEnv : public EnvWrapper {
   Status InitZenfs(
       const std::string& zdb_path, std::string bytedance_tags_,
       std::shared_ptr<MetricsReporterFactory> metrics_reporter_factory_) {
-    auto metrics = std::make_shared<BDZenFSMetrics>(metrics_reporter_factory_, bytedance_tags_, nullptr);
+    auto metrics = std::make_shared<NoZenFSMetrics>();
+    //auto metrics = std::make_shared<BDZenFSMetrics>(metrics_reporter_factory_, bytedance_tags_, nullptr);
     return NewZenFS(&fs_, zdb_path, metrics);
   }
 
