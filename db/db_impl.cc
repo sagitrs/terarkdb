@@ -86,7 +86,7 @@
 #include "utilities/trace/bytedance_metrics_reporter.h"
 
 #ifdef WITH_ZENFS
-#include "third-party/zenfs/fs/zbd_stat.h"
+#include "util/zbd_stat.h"
 #endif
 
 #if !defined(_MSC_VER) && !defined(__APPLE__)
@@ -1074,7 +1074,7 @@ void DBImpl::ScheduleTtlGC() {
 
 #ifdef WITH_ZENFS
 // Implemented inside `zenfs/fs/fs_zenfs.cc`
-std::vector<ZoneStat> GetStat(Env* env);
+std::vector<BDZoneStat> GetStat(Env* env);
 
 void DBImpl::ScheduleZNSGC() {
   TEST_SYNC_POINT("DBImpl:ScheduleZNSGC");
