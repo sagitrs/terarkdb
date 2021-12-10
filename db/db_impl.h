@@ -1856,6 +1856,8 @@ class DBImpl : public DB {
   LatencyReporter seekforprev_latency_reporter_;
   LatencyReporter prev_latency_reporter_;
 
+  LatencyReporter get_stat_latency_reporter_;
+
   ThroughputReporter write_throughput_reporter_;
   DistributionReporter write_batch_size_reporter_;
 };

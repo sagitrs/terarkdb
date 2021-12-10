@@ -267,6 +267,8 @@ static std::string seekforprev_latency_metric_name =
     "dbiter_seekforprev_latency";
 static std::string prev_latency_metric_name = "dbiter_prev_latency";
 
+static std::string get_stat_latency_metric_name = "dbimpl_get_stat_latency";
+
 static std::string write_throughput_metric_name = "dbimpl_writeimpl_throughput";
 static std::string write_batch_size_metric_name = "dbimpl_writeimpl_batch_size";
 
@@ -415,6 +417,9 @@ DBImpl::DBImpl(const DBOptions& options, const std::string& dbname,
               immutable_db_options_.info_log.get(), env_)),
       prev_latency_reporter_(*metrics_reporter_factory_->BuildHistReporter(
           prev_latency_metric_name, bytedance_tags_,
+          immutable_db_options_.info_log.get(), env_)),
+      get_stat_latency_reporter_(*metrics_reporter_factory_->BuildHistReporter(
+          get_stat_latency_metric_name, bytedance_tags_,
           immutable_db_options_.info_log.get(), env_)),
       write_throughput_reporter_(*metrics_reporter_factory_->BuildCountReporter(
           write_throughput_metric_name, bytedance_tags_,
@@ -1091,10 +1096,12 @@ void DBImpl::ScheduleZNSGC() {
     // GC is not enabled
     return;
   }
-
-  // Pick files for GC
-  auto stat = GetStat(env_);
-
+  std::vector<BDZoneStat> stat;
+  {
+    LatencyHistGuard guard(&get_stat_latency_reporter_);
+    // Pick files for GC
+    stat = GetStat(env_);
+  }
   uint64_t number;
   FileType type;
 
