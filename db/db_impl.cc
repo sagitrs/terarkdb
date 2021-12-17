@@ -1106,8 +1106,12 @@ void DBImpl::ScheduleMetricsReporter() {
   options.zone_file_.enabled_ = 0;  
   GetZenFSSnapshot(env_, snapshot, options);
 }
-
 void DBImpl::ScheduleZNSGC() {
+  ScheduleZNSGC_V1();
+}
+void DBImpl::ScheduleZNSGC_V3() {}
+void DBImpl::ScheduleZNSGC_V2() {}
+void DBImpl::ScheduleZNSGC_V1() {
   TEST_SYNC_POINT("DBImpl:ScheduleZNSGC");
   uint64_t nowSeconds = env_->NowMicros() / 1000U / 1000U;
   LogBuffer log_buffer_info(InfoLogLevel::INFO_LEVEL,
@@ -1330,6 +1334,25 @@ void DBImpl::ScheduleZNSGC() {
                    free_r, used_r, trash_r, target_r);
   log_buffer_info.FlushBufferToLog();
   log_buffer_debug.FlushBufferToLog();
+}
+void DBImpl::ScheduleZNSGC_V0() {
+  ZenFSSnapshot snapshot;
+  { 
+    LatencyHistGuard guard(&zenfs_get_snapshot_latency_reporter_);
+    
+    ZenFSSnapshotOptions options;
+    GetZenFSSnapshot(env_, snapshot, options);
+    snapshot.SortZonesByMigrateScore();
+    //ROCKS_LOG_BUFFER(&log_buffer_info,"ZNS GC :\n\t[GetStat]=%s\n", zenfs_stat.ToString());
+  }
+  if (snapshot.zones_.size() == 0) return;
+  const ZoneSnapshot& target_zone = snapshot.zones_[0];
+  std::unordered_set<uint64_t> migrated_files;
+  for (auto& file : target_zone.GetFileExtent()) {
+    if (migrated_files.find(file.FileID()) != migrated_files.end())
+      continue;
+    MigrateFile(env_, file, target_zone.ID());
+  }
 }
 #endif
 

@@ -812,6 +812,11 @@ class DBImpl : public DB {
   void ScheduleMetricsReporter();
   // schedule GC by polling ZNS zone status
   void ScheduleZNSGC();
+  void ScheduleZNSGC_V0();  // migrate all files in a zone.
+  void ScheduleZNSGC_V1();  // migrate some blob files in some zones.
+  void ScheduleZNSGC_V2();  // gc all blob files in a zone, migrate others.
+  void ScheduleZNSGC_V3();  // gc blob, compaction sst, migrate others.
+  
 #endif
 
  protected:

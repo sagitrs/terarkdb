@@ -507,6 +507,11 @@ class ZenfsEnv : public EnvWrapper {
     auto zen_fs = dynamic_cast<ZenFS*>(fs_);
     zen_fs->GetZenFSSnapshot(snapshot, options);
   }
+  void MigrateFile(const std::string& filename, uint64_t zone_id) {
+    auto zen_fs = dynamic_cast<ZenFS*>(fs_);
+    //zen_fs->MigrateFile(filename, zone_id);
+    // TODO: Implement ZenFS::MigrateFile(filename, zone_id)
+  }
   
   void Set_metrics_tag(std::string tag) { metrics_tag_ = tag; }
   std::string MetricsTag() { return metrics_tag_; }
@@ -539,6 +544,11 @@ void GetZenFSSnapshot(Env* env, ZenFSSnapshot& snapshot, const ZenFSSnapshotOpti
   if (!zen_env) return;
   zen_env->GetZenFSSnapshot(snapshot, options);
 }
+void MigrateFile(Env* env, const std::string& filename, uint64_t zone_id) {
+  auto zen_env = dynamic_cast<ZenfsEnv*>(env);
+  if (!zen_env) return;
+  zen_env->MigrateFile(filename, zone_id);
+}
 
 std::string MetricsTag(Env* env) {
   auto zen_env = dynamic_cast<ZenfsEnv*>(env);
@@ -566,7 +576,7 @@ Status GetZbdDiskSpaceInfo(Env* env, uint64_t& total_size, uint64_t& avail_size,
 
 void GetStat(Env* env, BDZenFSStat& stat) {}
 void GetZenFSSnapshot(Env* env, ZenFSSnapshot& snapshot, const ZenFSSnapshotOptions& options) {}
-
+void MigrateFile(Env* env, const std::string& filename, uint64_t zone_id) {}
 }  // namespace TERARKDB_NAMESPACE
 
 #endif
